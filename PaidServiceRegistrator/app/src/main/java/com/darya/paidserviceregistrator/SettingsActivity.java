@@ -1,7 +1,9 @@
 package com.darya.paidserviceregistrator;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.NumberPicker;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -25,5 +27,18 @@ public class SettingsActivity extends AppCompatActivity {
         numberPickerStringLength.setMinValue(min);
         numberPickerStringLength.setMaxValue(max);
         numberPickerStringLength.setValue(min);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                startActivity(intent);
+                this.finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
