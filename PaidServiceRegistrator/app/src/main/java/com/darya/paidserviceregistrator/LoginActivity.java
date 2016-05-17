@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.darya.paidserviceregistrator.entities.Service;
 import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
+import com.darya.paidserviceregistrator.util.ServiceAsyncTask;
 import com.darya.paidserviceregistrator.util.SoapObjectParser;
 
 import org.ksoap2.SoapEnvelope;
@@ -53,14 +54,19 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
+                    String login = loginTextView.getText().toString();
+                    String password = passwordEditText.getText().toString();
                     ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
-                    getServicesAsyncTask.execute("admin", "pass");
+                    getServicesAsyncTask.execute(login, password, ResourceReader.
+                            getString(ResourceReader.checkCredentials));
                     boolean isSuccess = Boolean.parseBoolean(getServicesAsyncTask.get().toString());
 
                     if(isSuccess) {
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.putExtra("login", loginTextView.getText());
-                        intent.putExtra("password", passwordEditText.getText());
+                        intent.putExtra(ResourceReader.getString(ResourceReader.parameterLogin),
+                               login);
+                        intent.putExtra(ResourceReader.getString(ResourceReader.parameterPassword),
+                               password);
 
                         startActivity(intent);
                         LoginActivity.this.finish();
@@ -82,59 +88,5 @@ public class LoginActivity extends AppCompatActivity {
         buttonLogin = (Button) findViewById(R.id.login_button);
         loginTextView = (AutoCompleteTextView) findViewById(R.id.login);
         passwordEditText = (EditText) findViewById(R.id.password);
-    }
-
-    public class ServiceAsyncTask extends AsyncTask<String, Void, SoapObject> {
-        ProgressDialog mDialog;
-        private int paramCount = 3;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-            mDialog = new ProgressDialog(LoginActivity.this);
-            mDialog.setMessage("Authentication...");
-            mDialog.setCancelable(false);
-            mDialog.show();
-        }
-
-        @Override
-        protected SoapObject doInBackground(String... params) {
-            if (params.length == paramCount) {
-                String commandName = params[2];
-                SoapObject request = new SoapObject(ResourceReader.getString(ResourceReader.wcfServiceNamespace),
-                        commandName);
-                request.addProperty("login", params[0]);
-                request.addProperty("password", params[1]);
-
-                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                        SoapEnvelope.VER11);
-                envelope.dotNet = true;
-
-                envelope.setOutputSoapObject(request);
-
-                try {
-                    HttpTransportSE androidHttpTransport = new HttpTransportSE(ResourceReader.
-                            getString(ResourceReader.wcfServiceUrl));
-                    androidHttpTransport.call(ResourceReader.getString(ResourceReader.commandPath) +
-                            commandName, envelope);
-
-                    return (SoapObject) envelope.getResponse();
-                } catch (XmlPullParserException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return null;
-        }
-
-
-        @Override
-        protected void onPostExecute(SoapObject result) {
-            super.onPostExecute(result);
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-            mDialog.dismiss();
-        }
     }
 }

@@ -37,6 +37,7 @@ public class ResourceReader {
     public static String wcfServiceUrl = "wcfServiceUrl";
     public static String wcfServiceNamespace = "wcfServiceNamespace";
     public static String getParamValue = "getParamValue";
+    public static String checkCredentials = "checkCredentials";
     public static String setParamValue = "setParamValue";
     public static String commandPath = "commandPath";
     public static String getServiceList = "getServiceList";

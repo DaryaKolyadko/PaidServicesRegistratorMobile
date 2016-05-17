@@ -10,6 +10,7 @@ import android.widget.ListView;
 import com.darya.paidserviceregistrator.entities.Service;
 import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
 import com.darya.paidserviceregistrator.util.ListViewServiceAdapter;
+import com.darya.paidserviceregistrator.util.ServiceAsyncTask;
 import com.darya.paidserviceregistrator.util.ServiceNameJsonParser;
 import com.darya.paidserviceregistrator.util.SoapObjectParser;
 
@@ -21,9 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ServiceListActivity extends AppCompatActivity {
-
+    private String login;
+    private String password;
     private ListView listViewServises;
 
     @Override
@@ -32,36 +35,27 @@ public class ServiceListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_service_list);
         setSupActionBar();
         setUpComponents();
+        initCredentials();
+        setListAdapter();
+    }
 
-
-        String ret;
+    private void setListAdapter() {
+        ServiceAsyncTask serviceAsyncTask = new ServiceAsyncTask();
+        serviceAsyncTask.execute(login, password, ResourceReader.getString(ResourceReader.getServiceList));
+        List<Service> services = null;
         try {
-            InputStream inputStream = getResources().openRawResource(R.raw.config);
-
-            if ( inputStream != null ) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String receiveString = "";
-                StringBuilder stringBuilder = new StringBuilder();
-
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
-                    stringBuilder.append(receiveString);
-                }
-
-                inputStream.close();
-                ret = stringBuilder.toString();
-                ServiceNameJsonParser parser = new ServiceNameJsonParser();
-
-                List services = parser.parse(ret);
-                ret += "";
-                listViewServises.setAdapter(new ListViewServiceAdapter(this, services));
-            }
+            services = SoapObjectParser.parse((SoapObject) serviceAsyncTask.get());
+            listViewServises.setAdapter(new ListViewServiceAdapter(this, services));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
-        catch (FileNotFoundException e) {
+    }
 
-        } catch (IOException e) {
-
-        }
+    private void initCredentials() {
+        login = getIntent().getStringExtra(ResourceReader.getString(ResourceReader.parameterLogin));
+        password = getIntent().getStringExtra(ResourceReader.getString(ResourceReader.parameterPassword));
     }
 
     private void setUpComponents() {
@@ -74,11 +68,6 @@ public class ServiceListActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
         }
-//        SoapObject result = getServicesAsyncTask.get();
-//        ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
-//        getServicesAsyncTask.execute("admin", "pass",
-//                ResourceReader.getString(ResourceReader.getServiceList));
-//        List<Service> serviceList = SoapObjectParser.parse(result);
     }
 
 
@@ -86,8 +75,6 @@ public class ServiceListActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                Intent intent = new Intent(ServiceListActivity.this, MainActivity.class);
-                startActivity(intent);
                 this.finish();
                 return true;
         }

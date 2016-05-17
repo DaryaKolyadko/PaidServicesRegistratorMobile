@@ -13,9 +13,13 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toolbar;
 
+import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
+
 public class MainActivity extends AppCompatActivity {
     private ImageButton buttonService;
     private ImageButton buttonSettings;
+    private String login;
+    private String password;
 
 
     @Override
@@ -24,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setUpComponents();
         setButtonsListeners();
+        initCredentials();
     }
 
     @Override
@@ -33,11 +38,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void initCredentials() {
+        login = getIntent().getStringExtra(ResourceReader.getString(ResourceReader.parameterLogin));
+        password = getIntent().getStringExtra(ResourceReader.getString(ResourceReader.parameterPassword));
+    }
+
     private void setButtonsListeners() {
+
         buttonSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                putExtras(intent);
                 startActivity(intent);
             }
         });
@@ -46,9 +58,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, ServiceListActivity.class);
+                putExtras(intent);
                 startActivity(intent);
             }
         });
+    }
+
+    private void putExtras(Intent intent) {
+        intent.putExtra(ResourceReader.getString(ResourceReader.parameterLogin),
+                login);
+        intent.putExtra(ResourceReader.getString(ResourceReader.parameterPassword),
+                password);
     }
 
     private void setUpComponents() {
