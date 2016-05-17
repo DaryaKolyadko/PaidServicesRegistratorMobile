@@ -10,7 +10,9 @@ import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import com.darya.paidserviceregistrator.entities.Service;
 import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
+import com.darya.paidserviceregistrator.util.SoapObjectParser;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
@@ -19,6 +21,7 @@ import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -34,7 +37,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ResourceReader.init(getApplicationContext());
         setContentView(R.layout.activity_login);
-
         setComponents();
         setButtonsListeners();
     }
@@ -45,8 +47,14 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
-                    getServicesAsyncTask.execute(ResourceReader.getString(ResourceReader.getServiceList));
-                    boolean isSuccess = getServicesAsyncTask.get();
+                    getServicesAsyncTask.execute("admin", "pass",
+                            ResourceReader.getString(ResourceReader.getServiceList));
+                    //boolean isSuccess = getServicesAsyncTask.get();
+                    SoapObject result = getServicesAsyncTask.get();
+                    List<Service> serviceList = SoapObjectParser.parse(result);
+
+                   // ServiceAsyncTask getParamNameAsyncTask = new ServiceAsyncTask();
+                   // getParamNameAsyncTask.execute(ResourceReader.getString(ResourceReader.getParamValue));
 
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
@@ -64,8 +72,9 @@ public class LoginActivity extends AppCompatActivity {
         buttonLogin = (Button) findViewById(R.id.login_button);
     }
 
-    public class ServiceAsyncTask extends AsyncTask<String, Void, String> {
+    public class ServiceAsyncTask extends AsyncTask<String, Void, SoapObject> {
         ProgressDialog mDialog;
+        private int paramCount = 3;
 
         @Override
         protected void onPreExecute() {
@@ -79,12 +88,13 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(String... params) {
-            if (params.length == 1) {
+        protected SoapObject doInBackground(String... params) {
+            if (params.length == paramCount) {
+                String commandName = params[2];
                 SoapObject request = new SoapObject(ResourceReader.getString(ResourceReader.wcfServiceNamespace),
-                        params[0]);
-                request.addProperty("login", "admin");
-                request.addProperty("password", "pass");
+                        commandName);
+                request.addProperty("login", params[0]);
+                request.addProperty("password", params[1]);
 
                 SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
                         SoapEnvelope.VER11);
@@ -95,11 +105,10 @@ public class LoginActivity extends AppCompatActivity {
                 try {
                     HttpTransportSE androidHttpTransport = new HttpTransportSE(ResourceReader.
                             getString(ResourceReader.wcfServiceUrl));
-                    androidHttpTransport.call(ResourceReader.getString(ResourceReader.commandGetServiceList),
-                            envelope);
+                    androidHttpTransport.call(ResourceReader.getString(ResourceReader.commandPath) +
+                            commandName, envelope);
 
-                    SoapObject result = (SoapObject) envelope.getResponse();
-                    return result.toString();
+                    return (SoapObject) envelope.getResponse();
                 } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                 }
@@ -110,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(SoapObject result) {
             super.onPostExecute(result);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             mDialog.dismiss();

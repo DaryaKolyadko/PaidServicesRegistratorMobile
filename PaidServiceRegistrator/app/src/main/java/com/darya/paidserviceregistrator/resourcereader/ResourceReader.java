@@ -36,11 +36,9 @@ public class ResourceReader {
     public static String randomLineLength = "randomLineLength";
     public static String wcfServiceUrl = "wcfServiceUrl";
     public static String wcfServiceNamespace = "wcfServiceNamespace";
-    public static String commandGetParamValue = "commandGetParamValue";
     public static String getParamValue = "getParamValue";
-    public static String commandSetParamValue = "commandSetParamValue";
     public static String setParamValue = "setParamValue";
-    public static String commandGetServiceList = "commandGetServiceList";
+    public static String commandPath = "commandPath";
     public static String getServiceList = "getServiceList";
     public static String parameterLogin = "parameterLogin";
     public static String parameterPassword = "parameterPassword";
