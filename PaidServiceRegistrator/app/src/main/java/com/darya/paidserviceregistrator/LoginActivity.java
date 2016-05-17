@@ -3,26 +3,22 @@ package com.darya.paidserviceregistrator;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
 
 import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
-import com.darya.paidserviceregistrator.wcfcontroller.WcfController;
 
 import org.ksoap2.SoapEnvelope;
-import org.ksoap2.SoapFault;
 import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -36,6 +32,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ResourceReader.init(getApplicationContext());
         setContentView(R.layout.activity_login);
+
+
 
         setComponents();
         buttonLogin.setOnClickListener(new OnClickListener() {

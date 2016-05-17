@@ -16,7 +16,17 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         setComponents();
+        setSupActionBar();
         setNumberPickerStringLength(MIN_STRING_LENGTH, MAX_STRING_LENGTH);
+
+    }
+
+    private void setSupActionBar() {
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+        }
     }
 
     private void setComponents() {
