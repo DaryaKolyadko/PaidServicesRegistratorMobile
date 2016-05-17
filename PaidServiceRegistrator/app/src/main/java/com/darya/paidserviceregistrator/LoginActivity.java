@@ -26,6 +26,8 @@ import java.util.concurrent.ExecutionException;
  */
 public class LoginActivity extends AppCompatActivity {
     private Button buttonLogin;
+    private String login;
+    private String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,16 +35,18 @@ public class LoginActivity extends AppCompatActivity {
         ResourceReader.init(getApplicationContext());
         setContentView(R.layout.activity_login);
 
-
-
         setComponents();
+        setButtonsListeners();
+    }
+
+    private void setButtonsListeners() {
         buttonLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
                     ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
                     getServicesAsyncTask.execute(ResourceReader.getString(ResourceReader.getServiceList));
-                    String result = getServicesAsyncTask.get();
+                    boolean isSuccess = getServicesAsyncTask.get();
 
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
