@@ -1,39 +1,29 @@
 package com.darya.paidserviceregistrator;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-
-import android.os.Build;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
+import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
+import com.darya.paidserviceregistrator.wcfcontroller.WcfController;
 
-import static android.Manifest.permission.READ_CONTACTS;
+import org.ksoap2.SoapEnvelope;
+import org.ksoap2.SoapFault;
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * A login screen that offers login via email/password.
@@ -44,15 +34,26 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ResourceReader.init(getApplicationContext());
         setContentView(R.layout.activity_login);
 
         setComponents();
         buttonLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                LoginActivity.this.finish();
+                try {
+                    ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
+                    getServicesAsyncTask.execute(ResourceReader.getString(ResourceReader.getServiceList));
+                    String result = getServicesAsyncTask.get();
+
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    LoginActivity.this.finish();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -60,6 +61,57 @@ public class LoginActivity extends AppCompatActivity {
     private void setComponents() {
         buttonLogin = (Button) findViewById(R.id.login_button);
     }
+
+    public class ServiceAsyncTask extends AsyncTask<String, Void, String> {
+        ProgressDialog mDialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            mDialog = new ProgressDialog(LoginActivity.this);
+            mDialog.setMessage("Authentication...");
+            mDialog.setCancelable(false);
+            mDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            if (params.length == 1) {
+                SoapObject request = new SoapObject(ResourceReader.getString(ResourceReader.wcfServiceNamespace),
+                        params[0]);
+                request.addProperty("login", "admin");
+                request.addProperty("password", "pass");
+
+                SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+                        SoapEnvelope.VER11);
+                envelope.dotNet = true;
+
+                envelope.setOutputSoapObject(request);
+
+                try {
+                    HttpTransportSE androidHttpTransport = new HttpTransportSE(ResourceReader.
+                            getString(ResourceReader.wcfServiceUrl));
+                    androidHttpTransport.call(ResourceReader.getString(ResourceReader.commandGetServiceList),
+                            envelope);
+
+                    SoapObject result = (SoapObject) envelope.getResponse();
+                    return result.toString();
+                } catch (XmlPullParserException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            mDialog.dismiss();
+        }
+    }
 }
-
-
