@@ -8,7 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.darya.paidserviceregistrator.entities.Service;
 import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
@@ -16,6 +19,7 @@ import com.darya.paidserviceregistrator.util.SoapObjectParser;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
@@ -29,6 +33,9 @@ import java.util.concurrent.ExecutionException;
  */
 public class LoginActivity extends AppCompatActivity {
     private Button buttonLogin;
+    private AutoCompleteTextView loginTextView;
+    private EditText passwordEditText;
+
     private String login;
     private String password;
 
@@ -47,18 +54,21 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
-                    getServicesAsyncTask.execute("admin", "pass",
-                            ResourceReader.getString(ResourceReader.getServiceList));
-                    //boolean isSuccess = getServicesAsyncTask.get();
-                    SoapObject result = getServicesAsyncTask.get();
-                    List<Service> serviceList = SoapObjectParser.parse(result);
+                    getServicesAsyncTask.execute("admin", "pass");
+                    boolean isSuccess = Boolean.parseBoolean(getServicesAsyncTask.get().toString());
 
-                   // ServiceAsyncTask getParamNameAsyncTask = new ServiceAsyncTask();
-                   // getParamNameAsyncTask.execute(ResourceReader.getString(ResourceReader.getParamValue));
+                    if(isSuccess) {
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        intent.putExtra("login", loginTextView.getText());
+                        intent.putExtra("password", passwordEditText.getText());
 
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    LoginActivity.this.finish();
+                        startActivity(intent);
+                        LoginActivity.this.finish();
+                    } else {
+                        Toast toast = Toast.makeText(getApplicationContext(),
+                                "Invalid credentials", Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
@@ -70,6 +80,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void setComponents() {
         buttonLogin = (Button) findViewById(R.id.login_button);
+        loginTextView = (AutoCompleteTextView) findViewById(R.id.login);
+        passwordEditText = (EditText) findViewById(R.id.password);
     }
 
     public class ServiceAsyncTask extends AsyncTask<String, Void, SoapObject> {

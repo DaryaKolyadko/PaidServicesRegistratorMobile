@@ -7,8 +7,13 @@ import android.view.MenuItem;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
+import com.darya.paidserviceregistrator.entities.Service;
+import com.darya.paidserviceregistrator.resourcereader.ResourceReader;
 import com.darya.paidserviceregistrator.util.ListViewServiceAdapter;
 import com.darya.paidserviceregistrator.util.ServiceNameJsonParser;
+import com.darya.paidserviceregistrator.util.SoapObjectParser;
+
+import org.ksoap2.serialization.SoapObject;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -69,6 +74,11 @@ public class ServiceListActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
         }
+//        SoapObject result = getServicesAsyncTask.get();
+//        ServiceAsyncTask getServicesAsyncTask = new ServiceAsyncTask();
+//        getServicesAsyncTask.execute("admin", "pass",
+//                ResourceReader.getString(ResourceReader.getServiceList));
+//        List<Service> serviceList = SoapObjectParser.parse(result);
     }
 
 
